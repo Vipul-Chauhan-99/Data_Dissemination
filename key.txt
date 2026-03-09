@@ -1,21 +1,12 @@
-Secret Recovery Phrase : garage glare pepper guilt produce sweet force patrol rely fruit breeze tone
-pdf CID: QmejvBLaX4hT9oEqq6C6r3tFJDpW5bPomyPdyJR2xSKNde
+Initialize the Repository: ipfs init
+Sever Global Connections: Erase the default public bootstrap routers so your node never contacts the outside world: ipfs bootstrap rm --all
+Generate the Swarm Key: Navigate to your IPFS repository folder (usually ~/.ipfs/ on Mac/Linux or C:\Users\YourName\.ipfs\ on Windows). Create a new plain text file named swarm.key and paste the following exact text into it: /key/swarm/psk/1.0.0/
+/base16/
+a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
 
-zip CID: QmXLZJx7JqJCE7UczJA2ZbE1inuBsCSMd66RLTRPeAKPtB
+Configure CORS (Cross-Origin Resource Sharing): To allow your local frontend DApp to send files to the IPFS API, run these two commands: ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "[\"*\"]"
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "[\"PUT\", \"POST\", \"GET\"]"
 
-Filebase
-[
+ipfs daemon
 
-  {
-
-    "AllowedHeaders": ["*"],
-
-    "AllowedMethods": ["PUT", "POST", "GET"],
-
-    "AllowedOrigins": ["*"],
-
-    "ExposeHeaders": ["x-amz-meta-cid"]
-
-  }
-
-]
+pip install watchdog web3
