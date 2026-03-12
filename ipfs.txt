@@ -10,3 +10,7 @@ ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "[\"PUT\", \"POS
 ipfs daemon
 
 pip install watchdog web3
+
+Command to generate a 64 character string/swarm key: $bytes = New-Object Byte[] 32
+[System.Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($bytes)
+([BitConverter]::ToString($bytes) -replace '-','').ToLower()
