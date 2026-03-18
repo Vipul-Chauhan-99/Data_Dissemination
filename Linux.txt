@@ -1,0 +1,104 @@
+Phase 1: Environment Provisioning
+Open your terminal. We will start by updating the package manager and installing the core runtime environments required for the blockchain and automation scripts.
+
+Update System Packages:
+
+Bash
+sudo apt update && sudo apt upgrade -y
+Install Python 3 and Pip:
+
+Bash
+sudo apt install python3 python3-pip -y
+Install Node.js and npm (Required for the EVM):
+
+Bash
+sudo apt install nodejs npm -y
+Phase 2: Installing and Isolating the IPFS Kubo Engine
+Instead of using a graphical installer, we will pull the native Linux binaries directly from Protocol Labs and isolate the node via the command line.
+
+Download and Install IPFS:
+
+Bash
+wget https://dist.ipfs.tech/kubo/v0.28.0/kubo_v0.28.0_linux-amd64.tar.gz
+tar -xvzf kubo_v0.28.0_linux-amd64.tar.gz
+cd kubo
+sudo bash install.sh
+Initialize the Repository:
+
+Bash
+ipfs init
+Sever Global Network Connections: Ensure the node never attempts to contact the public internet.
+
+Bash
+ipfs bootstrap rm --all
+Generate the Cryptographic Swarm Key: We will write the 256-bit PSK directly into the hidden .ipfs configuration folder.
+
+Bash
+echo -e "/key/swarm/psk/1.0.0/\n/base16/\na1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2" > ~/.ipfs/swarm.key
+Configure API CORS (Cross-Origin Resource Sharing): Allow your local DApp to communicate with the daemon.
+
+Bash
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "[\"*\"]"
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "[\"PUT\", \"POST\", \"GET\"]"
+Boot the Vault in the Background: Start the daemon and detach it so it runs silently in the background.
+
+Bash
+ipfs daemon > ipfs_log.txt 2>&1 &
+Phase 3: Deploying the Headless EVM (Ganache CLI)
+Running the blockchain in the terminal is vastly superior for Linux servers.
+
+Install Ganache CLI globally:
+
+Bash
+sudo npm install -g ganache
+Boot the Ledger: We will launch the blockchain, generate 250 accounts for load testing, and use the -d flag (deterministic) so you get the exact same private keys every time the server restarts.
+
+Bash
+ganache -a 250 -d > ganache_log.txt 2>&1 &
+(Note: Ganache is now quietly running on http://127.0.0.1:8545. Keep in mind that the CLI defaults to port 8545, whereas the UI defaults to 7545.)
+
+Phase 4: Constructing the Python Auto-Loader Daemon
+We will create a secure Dropzone using Linux file paths and configure the machine-to-machine watcher.
+
+Create the Project Directory and Dropzone:
+
+Bash
+mkdir ~/ISRO_Vault
+mkdir ~/ISRO_Dropzone
+cd ~/ISRO_Vault
+Install Python Web3 Dependencies:
+
+Bash
+pip3 install watchdog web3
+Create the Python Script: ```bash
+nano ipfs_autoloader.py
+
+*Paste your Python script here. Crucially, update the `WATCH_DIRECTORY` variable inside the script to use the Linux path format: `WATCH_DIRECTORY = "/home/username/ISRO_Dropzone"` (replace 'username' with your actual Linux user).* Save and exit (`Ctrl+O`, `Enter`, `Ctrl+X`).
+
+Run the Daemon in the Background:
+
+Bash
+python3 ipfs_autoloader.py > autoloader_log.txt 2>&1 &
+Phase 5: Hosting the DApp Frontend
+Finally, we need to serve the HTML file so you can access the mission control dashboard via your browser.
+
+Create the HTML File:
+
+Bash
+nano index.html
+Paste the complete HTML/JS DApp code here. Since we are using the Ganache CLI, ensure your GANACHE_URL in the frontend code is set to http://127.0.0.1:8545 and the GANACHE_ID matches your CLI output (usually 1337). Save and exit.
+
+Boot the Web Server:
+
+Bash
+python3 -m http.server 8000
+Phase 6: System Verification
+Open your Linux web browser (e.g., Firefox) and navigate to http://localhost:8000.
+
+Connect your MetaMask wallet (ensuring it is pointed to http://127.0.0.1:8545).
+
+Open a second terminal window and drop a test payload into your vault:
+
+Bash
+touch ~/ISRO_Dropzone/telemetry_test.txt
+Watch your DApp dashboard automatically update as the background daemons intercept, hash, and anchor the file to the EVM.
