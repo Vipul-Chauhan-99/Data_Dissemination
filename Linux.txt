@@ -1,20 +1,22 @@
-Phase 1: Environment Provisioning
-Open your terminal. We will start by updating the package manager and installing the core runtime environments required for the blockchain and automation scripts.
+Phase 1: Environment Provisioning (Using DNF)
+Red Hat uses the dnf package manager to handle dependencies.
 
 Update System Packages:
 
 Bash
-sudo apt update && sudo apt upgrade -y
-Install Python 3 and Pip:
+sudo dnf update -y
+Install Python 3, Pip, and essential utilities:
 
 Bash
-sudo apt install python3 python3-pip -y
+sudo dnf install python3 python3-pip wget tar -y
 Install Node.js and npm (Required for the EVM):
+Red Hat manages Node.js through module streams. Enable a recent stream (like 18 or 20) and install:
 
 Bash
-sudo apt install nodejs npm -y
-Phase 2: Installing and Isolating the IPFS Kubo Engine
-Instead of using a graphical installer, we will pull the native Linux binaries directly from Protocol Labs and isolate the node via the command line.
+sudo dnf module enable nodejs:20 -y
+sudo dnf install nodejs npm -y
+Phase 2: Installing IPFS Kubo & Ganache CLI
+The installation for these decentralized nodes remains exactly the same as the binaries are universally compiled for Linux architectures.
 
 Download and Install IPFS:
 
@@ -23,6 +25,10 @@ wget https://dist.ipfs.tech/kubo/v0.28.0/kubo_v0.28.0_linux-amd64.tar.gz
 tar -xvzf kubo_v0.28.0_linux-amd64.tar.gz
 cd kubo
 sudo bash install.sh
+Install Ganache CLI globally:
+
+Bash
+sudo npm install -g ganache
 Initialize the Repository:
 
 Bash
@@ -102,3 +108,13 @@ Open a second terminal window and drop a test payload into your vault:
 Bash
 touch ~/ISRO_Dropzone/telemetry_test.txt
 Watch your DApp dashboard automatically update as the background daemons intercept, hash, and anchor the file to the EVM.
+
+Red Hat ships with SELinux enforcing strict access controls by default.
+
+When your Python watchdog daemon attempts to monitor the /home/username/ISRO_Dropzone directory, or when IPFS tries to bind to local ports, SELinux might silently block the execution if it flags it as unusual behavior.
+
+The Quick Check: If your Python script crashes with a "Permission Denied" error, or if IPFS refuses to start, you can temporarily put SELinux into permissive mode to see if it is the culprit:
+
+Bash
+sudo setenforce 0
+If the system works perfectly after running that command, you know SELinux was blocking it. For a production aerospace server, you would then write a custom SELinux policy module to permanently whitelist your Python script and IPFS binaries (though leaving it in permissive mode is often acceptable for local testing and university defense demonstrations).
