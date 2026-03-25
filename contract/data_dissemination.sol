@@ -23,6 +23,9 @@ contract SecureLogAccess {
     // Example: File 101 -> Wallet 0xABC... -> True (Allowed to view)
     mapping (uint => mapping (address => bool)) private authorizedUsers;
 
+    // NEW CODE: Tracks the specific list of File IDs each user is allowed to access to populate the DApp picklist.
+    mapping (address => uint[]) private userAuthorizedFiles;
+
     // "Events" are permanent, un-erasable ink stamps on the blockchain. They act as our Audit Trail.
     
     // Event 1: Triggered when someone opens the main container (like a ZIP file or a standalone PDF).
@@ -58,6 +61,9 @@ contract SecureLogAccess {
         files[_id] = FileRecord(_cid, _name, true);
         // Automatically give the Admin permission to view the file they just uploaded.
         authorizedUsers[_id][owner] = true;
+        
+        // NEW CODE: Add this file ID to the Admin's personal picklist array.
+        userAuthorizedFiles[owner].push(_id);
     }
 
     // ADMIN FUNCTION: Grants permission to a specific user.
@@ -65,6 +71,11 @@ contract SecureLogAccess {
         // First check: Does this file actually exist?
         require(files[_id].exists, "File Not Found");
         
+        // NEW CODE: Only add the ID to the array if they don't already have access (prevents duplicates in the dropdown).
+        if (!authorizedUsers[_id][_user]) {
+            userAuthorizedFiles[_user].push(_id);
+        }
+
         // Flip the switch in the 'authorizedUsers' cabinet to True for this specific person.
         authorizedUsers[_id][_user] = true;
         
@@ -107,5 +118,27 @@ contract SecureLogAccess {
         
         // Change the master admin to the new address.
         owner = _newOwner; 
+    }
+
+    // NEW CODE: Returns the complete array of File IDs authorized for the person calling the function.
+    // This is what the DApp frontend calls to build the dropdown menu.
+    function getMyAuthorizedFiles() public view returns (uint[] memory) {
+        return userAuthorizedFiles[msg.sender];
+    }
+    // NEW CODE: Fetches BOTH the File IDs and their human-readable File Names for the UI picklist.
+    function getMyAuthorizedFilesDetails() public view returns (uint[] memory, string[] memory) {
+        // 1. Get the list of IDs this user is allowed to see
+        uint[] memory myIds = userAuthorizedFiles[msg.sender];
+        
+        // 2. Create a temporary array in memory to hold the matching names
+        string[] memory myNames = new string[](myIds.length);
+        
+        // 3. Loop through the IDs and look up the name for each one
+        for (uint i = 0; i < myIds.length; i++) {
+            myNames[i] = files[myIds[i]].fileName;
+        }
+        
+        // 4. Send both arrays back to the frontend at the same time
+        return (myIds, myNames);
     }
 }
